@@ -5,11 +5,11 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		parent::__construct( 'FlexiblePrefix' );
 	}
 
-	function fetch(Title $title, $ns=null){
+	function getTitles(Title $title, $ns=null){
 		if ($ns === null)
 			$ns = $title->getNamespace();
 		$dbr = wfGetDB(DB_REPLICA);
-		return $dbr->select(
+		return TitleArray::newFromResult($dbr->select(
 			'page',
 			['page_namespace', 'page_title'],
 			[
@@ -20,29 +20,30 @@ class SpecialFlexiblePrefix extends SpecialPage {
 			],
 			__METHOD__,
 			['ORDER BY' => ['page_title', 'page_namespace']]
-		);
+		));
 	}
 
-	function getHTML($res, $currentTitle=null){
+	function makeList($titles, $currentTitle=null){
+		$items = [];
+		foreach ($titles as $title){
+			$details = [];
+			if ($title->getNamespace() != 0)
+				$details['ns'] = str_replace('_', ' ', $title->getNsText());
+			Hooks::run('FlexiblePrefixDetails', [$title, &$details]);
+			$items[] = ['title'=>$title, 'details'=>$details];
+		}
+		Hooks::run('FlexiblePrefixBeforeDisplay', [&$items]);
 		$html = '<ul>';
-		foreach ($res as $row){
-			$title = Title::newFromRow($row);
+		foreach ($items as $item){
 			$html .= '<li>';
 
-			if ($currentTitle && $title->equals($currentTitle))
-				$html .= Linker::makeSelfLinkObj($title, $title->getText());
+			if ($currentTitle && $item['title']->equals($currentTitle))
+				$html .= Linker::makeSelfLinkObj($item['title'], $item['title']->getText());
 			else
-				$html .= Linker::linkKnown($title, $title->getText());
+				$html .= Linker::linkKnown($item['title'], $item['title']->getText());
 
-			$details = [];
-
-			if ($title->getNamespace() != 0)
-				$details[] = str_replace('_', ' ', $title->getNsText());
-
-			Hooks::run('FlexiblePrefixBeforeDisplayDetails', [$title, &$details]);
-
-			if ($details)
-				$html .= ' (' . implode($details, ', ') . ')';
+			if ($item['details'])
+				$html .= ' (' . implode(array_values($item['details']), ', ') . ')';
 
 			$html .= '</li>';
 		}
@@ -73,12 +74,12 @@ class SpecialFlexiblePrefix extends SpecialPage {
 				return;
 			}
 		}
-		$res =  $this->fetch($title, $ns);
-		if ($res->numRows() == 0)
+		$titles =  $this->getTitles($title, $ns);
+		if ($titles->count() == 0)
 			$out->addHTML('No results found.');
-		elseif ($res->numRows() == 1)
+		elseif ($titles->count() == 1)
 			$out->redirect(Title::newFromRow($res->fetchObject())->getFullURL());
 		else
-			$out->addHTML($this->getHTML($res));
+			$out->addHTML($this->makeList($titles));
 	}
 }
