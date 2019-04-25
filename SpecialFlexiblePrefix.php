@@ -5,7 +5,7 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		parent::__construct( 'FlexiblePrefix' );
 	}
 
-	static function fetch(Title $title, $ns=null){
+	function fetch(Title $title, $ns=null){
 		if ($ns === null)
 			$ns = $title->getNamespace();
 		$dbr = wfGetDB(DB_REPLICA);
@@ -23,7 +23,7 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		);
 	}
 
-	static function getHTML($res, $currentTitle=null){
+	function getHTML($res, $currentTitle=null){
 		$html = '<ul>';
 		foreach ($res as $row){
 			$title = Title::newFromRow($row);
@@ -73,12 +73,12 @@ class SpecialFlexiblePrefix extends SpecialPage {
 				return;
 			}
 		}
-		$res =  self::fetch($title, $ns);
+		$res =  $this->fetch($title, $ns);
 		if ($res->numRows() == 0)
 			$out->addHTML('No results found.');
 		elseif ($res->numRows() == 1)
 			$out->redirect(Title::newFromRow($res->fetchObject())->getFullURL());
 		else
-			$out->addHTML(self::getHTML($res));
+			$out->addHTML($this->getHTML($res));
 	}
 }
