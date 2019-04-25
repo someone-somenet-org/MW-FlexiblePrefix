@@ -5,32 +5,34 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		parent::__construct( 'FlexiblePrefix' );
 	}
 
-	private static function fetch(Title $title, $ns=null, $excludeTitle=null){
+	static function fetch(Title $title, $ns=null){
 		if ($ns === null)
 			$ns = $title->getNamespace();
 		$dbr = wfGetDB(DB_REPLICA);
-		$cond = [
+		return $dbr->select(
+			'page',
+			['page_namespace', 'page_title'],
+			[
 				'page_namespace' => $ns,
 				'page_title'.$dbr->buildLike($title->getDBkey(), $dbr->anyString()),
 				'page_title NOT LIKE "%/%"', # exclude subpages
 				'page_is_redirect=0'
-		];
-		if ($excludeTitle)
-			$cond[] = 'page_title !='. $dbr->addQuotes($excludeTitle->getDBkey());
-		return $dbr->select(
-			'page',
-			['page_namespace', 'page_title'],
-			$cond,
+			],
 			__METHOD__,
 			['ORDER BY' => ['page_title', 'page_namespace']]
 		);
 	}
 
-	private static function generateHTML($res){
+	static function getHTML($res, $currentTitle=null){
 		$html = '<ul>';
 		foreach ($res as $row){
 			$title = Title::newFromRow($row);
-			$html .= '<li>'.Linker::linkKnown($title, $title->getText());
+			$html .= '<li>';
+
+			if ($currentTitle && $title->equals($currentTitle))
+				$html .= Linker::makeSelfLinkObj($title, $title->getText());
+			else
+				$html .= Linker::linkKnown($title, $title->getText());
 
 			$details = [];
 
@@ -45,11 +47,6 @@ class SpecialFlexiblePrefix extends SpecialPage {
 			$html .= '</li>';
 		}
 		return $html . '</ul>';
-	}
-
-	public static function getHTML($title, $excludeTitle=null){
-		# provide convenient API
-		return self::generateHTML(self::fetch($title, null, $excludeTitle));
 	}
 
 	function execute( $par ) {
@@ -82,6 +79,6 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		elseif ($res->numRows() == 1)
 			$out->redirect(Title::newFromRow($res->fetchObject())->getFullURL());
 		else
-			$out->addHTML(self::generateHTML($res));
+			$out->addHTML(self::getHTML($res));
 	}
 }

@@ -19,7 +19,7 @@ Then configure the default namespaces, e.g:
 ## Tips
 
 * With the `FlexiblePrefixBeforeDisplayDetails($title, &$details)` hook you can add additional details.
-* You can use `SpecialFlexiblePrefix::getHTML($prefix, $excludedTitle=null)` to embed the prefix index elsewhere.
+* You can use `SpecialFlexiblePrefix::getHTML(SpecialFlexiblePrefix::fetch($prefix), $title)` to embed the prefix index elsewhere.
 
 ## Credits
 
