@@ -23,7 +23,7 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		));
 	}
 
-	function makeList($titles, $currentTitle=null){
+	function addDetails($titles){
 		$items = [];
 		foreach ($titles as $title){
 			$details = [];
@@ -33,8 +33,12 @@ class SpecialFlexiblePrefix extends SpecialPage {
 			$items[] = ['title'=>$title, 'details'=>$details];
 		}
 		Hooks::run('FlexiblePrefixBeforeDisplay', [&$items]);
+		return $items;
+	}
+
+	function makeList($titlesWithDetails, $currentTitle=null){
 		$html = '<ul>';
-		foreach ($items as $item){
+		foreach ($titlesWithDetails as $item){
 			$html .= '<li>';
 
 			if ($currentTitle && $item['title']->equals($currentTitle))
@@ -80,6 +84,6 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		elseif ($titles->count() == 1)
 			$out->redirect(Title::newFromRow($res->fetchObject())->getFullURL());
 		else
-			$out->addHTML($this->makeList($titles));
+			$out->addHTML($this->makeList($this->addDetails($titles)));
 	}
 }

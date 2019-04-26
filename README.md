@@ -19,8 +19,8 @@ Then configure the default namespaces, e.g:
 ## Tips
 
 * The `FlexiblePrefixDetails(Title $title, &$details)` hook lets you add details to results (details is an associative array mapping keys to HTML strings).
-* The `FlexiblePrefixBeforeDisplay(&$items)` hook lets you modify the list items before display.
-* The special page can be embedded elsewhere with `SpecialFlexiblePrefix::makeList(SpecialFlexiblePrefix::getTitles($prefix), $title)`.
+* The `FlexiblePrefixBeforeDisplay(&$items)` hook lets you modify the result list before display.
+* The `SpecialFlexiblePrefix` class can be integrated elsewhere (either by direct instantiation or inheritance).
 
 ## Credits
 
