@@ -29,10 +29,10 @@ class SpecialFlexiblePrefix extends SpecialPage {
 			$details = [];
 			if ($title->getNamespace() != 0)
 				$details['ns'] = str_replace('_', ' ', $title->getNsText());
-			Hooks::run('FlexiblePrefixDetails', [$title, &$details]);
+			Hooks::run('FlexiblePrefixDetails', [$title, &$details, $this->getContext()]);
 			$items[] = ['title'=>$title, 'details'=>$details];
 		}
-		Hooks::run('FlexiblePrefixBeforeDisplay', [&$items]);
+		Hooks::run('FlexiblePrefixBeforeDisplay', [&$items, $this->getContext()]);
 		return $items;
 	}
 
