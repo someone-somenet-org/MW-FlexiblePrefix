@@ -5,10 +5,16 @@ class SpecialFlexiblePrefix extends SpecialPage {
 		parent::__construct( 'FlexiblePrefix' );
 	}
 
-	function getTitles(Title $title, $ns=null){
-		if ($ns === null)
+	function getTitles($prefix){
+		global $wgFlexiblePrefixNamespaces;
+		$title = Title::newFromTextThrow($prefix);
+		if ($prefix[0] != ':' && $title->inNamespace(NS_MAIN) && $wgFlexiblePrefixNamespaces){
+			$ns = $wgFlexiblePrefixNamespaces;
+		} else {
 			$ns = $title->getNamespace();
+		}
 		$dbr = wfGetDB(DB_REPLICA);
+
 		return TitleArray::newFromResult($dbr->select(
 			'page',
 			['page_namespace', 'page_title'],
@@ -57,6 +63,11 @@ class SpecialFlexiblePrefix extends SpecialPage {
 	function execute( $par ) {
 		global $wgFlexiblePrefixNamespaces;
 		$this->setHeaders();
+		if ($wgFlexiblePrefixNamespaces == null){
+			$out->addHTML('$wgFlexiblePrefixNamespaces not set.');
+			return;
+		}
+
 		$out = $this->getOutput();
 
 		if (empty($par)){
@@ -64,25 +75,18 @@ class SpecialFlexiblePrefix extends SpecialPage {
 			$out->setPageTitle(wfMessage('notargettitle'));
 			return;
 		}
-		$title = Title::newFromText($par);
-		if ($title == null){
+
+		try {
+			$titles =  $this->getTitles($par);
+		} catch (MalformedTitleException $e){
 			$out->setPageTitle(wfMessage('invalidtitle'));
 			return;
 		}
-		$ns = null;
-		if ($title->inNamespace(NS_MAIN) && $par[0] != ':'){
-			if ($wgFlexiblePrefixNamespaces)
-				$ns = $wgFlexiblePrefixNamespaces;
-			else {
-				$out->addHTML('$wgFlexiblePrefixNamespaces not set.');
-				return;
-			}
-		}
-		$titles =  $this->getTitles($title, $ns);
+
 		if ($titles->count() == 0)
 			$out->addHTML('No results found.');
 		elseif ($titles->count() == 1)
-			$out->redirect(Title::newFromRow($res->fetchObject())->getFullURL());
+			$out->redirect($titles->current()->getFullURL());
 		else
 			$out->addHTML($this->makeList($this->addDetails($titles)));
 	}
