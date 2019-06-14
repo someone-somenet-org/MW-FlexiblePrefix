@@ -3,7 +3,7 @@
 	"type": "specialpage",
 	"license-name": "MIT",
 	"author": "Gittenburg",
-	"url": "https://github.com/Gittenburg/FlexiblePrefix",
+	"url": "https://www.mediawiki.org/wiki/Extension:FlexiblePrefix",
 	"version": "0.1.0",
 	"descriptionmsg": "flexiblelinks-desc",
 	"config": {
