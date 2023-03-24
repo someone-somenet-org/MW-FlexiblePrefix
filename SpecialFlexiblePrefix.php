@@ -53,7 +53,7 @@ class SpecialFlexiblePrefix extends SpecialPage {
 				$html .= Linker::linkKnown($item['title'], $item['title']->getText());
 
 			if ($item['details'])
-				$html .= ' (' . implode(array_values($item['details']), ', ') . ')';
+				$html .= ' (' . implode(', ', array_values($item['details'])) . ')';
 
 			$html .= '</li>';
 		}
